@@ -91,6 +91,8 @@
   const bgMusic = $('bgMusic');
   const musicBtn = $('musicBtn');
   const musicHint = $('musicHint');
+  const quickWishBtn = $('quickWishBtn');
+  const quickWishCount = $('quickWishCount');
 
   let messages = [];
   const messagesById = new Map();
@@ -100,6 +102,7 @@
   let offlineMode = false;
   let polling = false;
   let sending = false;
+  let quickSending = false;
   let toastTimer = 0;
   let lastBoomAt = 0;
 
@@ -640,7 +643,21 @@
         vy: -random(2.2, 3.15),
         targetY,
         color,
-        type: options.type || pick(['ring', 'bloom', 'willow', 'heart', 'double', 'ring']),
+        type:
+          options.type ||
+          pick([
+            'ring',
+            'bloom',
+            'willow',
+            'heart',
+            'double',
+            'star',
+            'spiral',
+            'palm',
+            'crossette',
+            'ring',
+            'bloom'
+          ]),
         power: options.power || random(0.9, 1.25)
       });
     }
@@ -731,6 +748,80 @@
             0.985
           );
         }
+      } else if (type === 'star') {
+        const points = 5;
+        const total = isReduced ? 34 : 76;
+        for (let index = 0; index < total; index += 1) {
+          const point = index % points;
+          const angle =
+            -Math.PI / 2 + (point / points) * Math.PI * 2 + random(-0.075, 0.075);
+          const reach = index < points * 3 ? random(1.35, 2.15) : random(0.55, 1.3);
+          const velocity = reach * base;
+          add(
+            Math.cos(angle) * velocity,
+            Math.sin(angle) * velocity,
+            random(58, 104),
+            Math.random() < 0.24 ? '#fff7de' : color,
+            Math.random() < 0.2 ? 2 : 1,
+            random(0.012, 0.026),
+            0.986
+          );
+        }
+        ring(1.0, 18, '#ffe6a1', 40, 66, 0.08);
+      } else if (type === 'spiral') {
+        const total = isReduced ? 32 : 82;
+        for (let index = 0; index < total; index += 1) {
+          const progress = index / total;
+          const angle = progress * Math.PI * 4.6 + random(-0.04, 0.04);
+          const velocity = (0.45 + progress * 2.0) * base;
+          add(
+            Math.cos(angle) * velocity,
+            Math.sin(angle) * velocity,
+            random(54, 100),
+            Math.random() < 0.26 ? '#ffffff' : color,
+            Math.random() < 0.16 ? 2 : 1,
+            random(0.012, 0.024),
+            0.99
+          );
+        }
+      } else if (type === 'palm') {
+        const fronds = 9;
+        const perFrond = isReduced ? 3 : 6;
+        for (let frond = 0; frond < fronds; frond += 1) {
+          const spread = fronds === 1 ? 0 : frond / (fronds - 1) - 0.5;
+          const angle = -Math.PI / 2 + spread * Math.PI * 1.25;
+          for (let index = 0; index < perFrond; index += 1) {
+            const velocity = (0.85 + index * 0.3) * base;
+            add(
+              Math.cos(angle) * velocity + random(-0.1, 0.1),
+              Math.sin(angle) * velocity + random(-0.08, 0.08),
+              random(90, 138),
+              Math.random() < 0.34 ? '#ffd166' : color,
+              Math.random() < 0.36 ? 2 : 1,
+              0.052,
+              0.99
+            );
+          }
+        }
+      } else if (type === 'crossette') {
+        const arms = 8;
+        const perArm = isReduced ? 2 : 4;
+        for (let arm = 0; arm < arms; arm += 1) {
+          const angle = (arm / arms) * Math.PI * 2 + random(-0.025, 0.025);
+          for (let index = 0; index < perArm; index += 1) {
+            const velocity = (0.75 + index * 0.47) * base;
+            add(
+              Math.cos(angle) * velocity,
+              Math.sin(angle) * velocity,
+              random(58, 96),
+              Math.random() < 0.3 ? '#fff7de' : color,
+              Math.random() < 0.22 ? 2 : 1,
+              random(0.012, 0.026),
+              0.992
+            );
+          }
+        }
+        ring(0.9, 14, color, 32, 52, 0.1);
       } else if (type === 'double') {
         ring(1.85, 40, color, 55, 82);
         ring(1.05, 30, Math.random() < 0.5 ? '#ffd166' : pick(colors), 48, 76, 0.06);
@@ -892,20 +983,23 @@
       if (!running) return;
       resize();
       const total = prefersReducedMotion ? 4 : 10;
+      const finaleTypes = [
+        'heart',
+        'double',
+        'bloom',
+        'star',
+        'spiral',
+        'palm',
+        'crossette',
+        'ring'
+      ];
       for (let index = 0; index < total; index += 1) {
         window.setTimeout(() => {
           launch({
             x: width * random(0.15, 0.85),
             targetY: height * random(0.1, 0.43),
             power: random(1.12, 1.48),
-            type:
-              index % 4 === 0
-                ? 'heart'
-                : index % 4 === 1
-                  ? 'double'
-                  : index % 4 === 2
-                    ? 'bloom'
-                    : 'ring'
+            type: finaleTypes[index % finaleTypes.length]
           });
         }, index * 140);
       }
@@ -1093,11 +1187,22 @@
     refreshCounters();
   }
 
+  function refreshQuickCount() {
+    if (!quickWishBtn || !quickWishCount) return;
+    const count = messages.filter((message) => message.text === '生日快乐！').length;
+    quickWishCount.textContent = count > 999 ? '999+ 次' : `${count} 次`;
+    quickWishBtn.setAttribute(
+      'aria-label',
+      `快捷发送一条生日快乐，当前已发送 ${count} 次`
+    );
+  }
+
   function refreshCounters() {
     const count = messages.length;
     badgeCount.textContent = count > 99 ? '99+' : String(count);
     wishTotal.textContent = `${count} 条祝福`;
     wallCount.textContent = String(count);
+    refreshQuickCount();
   }
 
   function renderWall() {
@@ -1406,6 +1511,47 @@
     }
   }
 
+  async function sendQuickWish() {
+    if (quickSending || !quickWishBtn) return;
+
+    const name = limitText(nameInput.value, 16) || '匿名旅人';
+    quickSending = true;
+    quickWishBtn.disabled = true;
+
+    try {
+      if (offlineMode) {
+        const wish = {
+          id: `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+          name,
+          text: '生日快乐！',
+          ts: Date.now()
+        };
+        mergeMessages([wish]);
+        saveLocalWish(wish);
+        if (name !== '匿名旅人') saveGuestName(name);
+        showToast('生日快乐！已保存在本机');
+        fireworks.cheer();
+        return;
+      }
+
+      const wish = await createWish(name, '生日快乐！');
+      mergeMessages([wish]);
+      if (name !== '匿名旅人') saveGuestName(name);
+      showToast('生日快乐！已送达 ✦');
+      fireworks.cheer();
+      setStatus('online', `星空已连接 · ${messages.length} 条祝福`);
+    } catch (error) {
+      const message =
+        error && error.name === 'AbortError'
+          ? '网络有点慢，生日快乐没有送出，请再试一次。'
+          : error.message || '生日快乐没有送出，请稍后再试。';
+      showToast(message, 'error');
+    } finally {
+      quickSending = false;
+      quickWishBtn.disabled = false;
+    }
+  }
+
   function openWall() {
     renderWall();
     document.body.classList.add('modal-open');
@@ -1450,6 +1596,7 @@
     }
 
     wishForm.addEventListener('submit', submitWish);
+    if (quickWishBtn) quickWishBtn.addEventListener('click', sendQuickWish);
 
     if (musicBtn) musicBtn.addEventListener('click', toggleMusic);
     if (musicHint) musicHint.addEventListener('click', () => startMusic(true));
