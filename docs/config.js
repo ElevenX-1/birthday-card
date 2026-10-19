@@ -1,16 +1,15 @@
 /**
  * GitHub Pages 版本配置
  *
- * backend 固定为 supabase；把下面两项换成你的 Supabase 项目信息：
- * - url：Project Settings → API → Project URL
- * - anonKey：Project Settings → API → anon public key（可以公开，不要用 service_role）
+ * backend 固定为 supabase；anon public key 可以公开，不要使用 service_role。
  */
 window.BIRTHDAY_CONFIG = {
   name: '蒙昊',
   subtitle: '生日快乐，愿你的每一天都像烟花一样闪闪发光',
   backend: 'supabase',
   supabase: {
-    url: '',
-    anonKey: ''
+    url: 'https://lqvoojtrdbimkzoxnucj.supabase.co',
+    anonKey:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxdm9vanRyZGJpbWt6b3hudWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MDg1NDAsImV4cCI6MjEwNzk4NDU0MH0.acvWFG_n-VAdKMLU8vyDeafygIJJHUMXEyT29SCBP3U'
   }
 };
