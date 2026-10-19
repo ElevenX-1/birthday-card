@@ -1,10 +1,11 @@
-# ✦ 生日贺卡 · 
+# ✦ 生日贺卡 · 谢Bro
 
 一个不需要构建的小网页：
 
 - 背景是动态的像素烟花、星空和月亮；
 - 标题会显示寿星的名字，并带一块像素风 `HAPPY BIRTHDAY`；
 - 访客可以留下祝福，留言会变成弹幕在夜空中滚动；
+- 背景播放一段缓慢的 `Happy Birthday` 钢琴纯音乐，可随时开关；
 - 「祝福墙」可以集中查看所有留言；
 - 支持手机端、减少动态效果偏好，以及离线预览模式。
 
@@ -72,8 +73,11 @@ http://localhost:3000/?to=小美
 
 - 前端静态文件在 `docs/`，由 GitHub Pages 托管；
 - 配置在 `docs/config.js`，其中 `backend: 'supabase'`，并填写 Project URL 与 **anon public** key；
+- `messagesSince` 用来截断旧留言：早于该时间的留言不会进入页面（本次生日页的展示起点）；
 - 数据表结构在 `supabase/schema.sql`，匿名用户只能读取和新增，不能修改/删除；
 - `anon public` key 可以公开在静态页面里，**不要**把 `service_role` key 写进前端。
+
+背景钢琴曲由 `scripts/generate_music.py` 合成，不依赖外部录音，因此没有版权问题；重新生成后在 `public/assets/` 和 `docs/assets/` 各放一份。
 
 更换 Supabase 项目时，只需要更新 `docs/config.js` 中的两项并重新推送。
 
@@ -167,15 +171,19 @@ birthday-fireworks/
 │   ├── style.css        # 像素风、夜空、弹幕、移动端样式
 │   ├── app.js           # 烟花引擎、弹幕、留言交互（Node/Supabase 双后端）
 │   ├── config.js        # 寿星名字和祝福语
+│   ├── assets/          # 背景钢琴曲
 │   └── favicon.svg
 ├── docs/                # GitHub Pages 静态站点
 │   ├── index.html
 │   ├── style.css
 │   ├── app.js
 │   ├── config.js        # 线上 Supabase 配置
+│   ├── assets/          # 背景钢琴曲
 │   └── favicon.svg
 ├── supabase/
 │   └── schema.sql       # 留言表 + RLS 策略
+├── scripts/
+│   └── generate_music.py # 合成背景钢琴曲
 └── data/
     └── messages.json    # 本地 Node 版留言
 ```
