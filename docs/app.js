@@ -1318,7 +1318,7 @@
   /* --------------------------------- 启动 ---------------------------------- */
 
   function bindEvents() {
-    document.title = `${NAME} · 生日快乐`;
+    document.title = `生日贺卡 · ${NAME}`;
     $('birthdayName').textContent = NAME;
     $('birthdayName').classList.toggle('long', Array.from(NAME).length > 6);
     $('subtitleText').textContent = SUBTITLE;
