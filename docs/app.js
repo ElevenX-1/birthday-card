@@ -6,7 +6,7 @@
 
   const CONFIG = Object.assign(
     {
-      name: '小美',
+      name: '谢Bro',
       subtitle: '生日快乐，愿你的每一天都像烟花一样闪闪发光',
       backend: 'node',
       supabase: { url: '', anonKey: '' }
@@ -29,6 +29,16 @@
   const USE_SUPABASE = CONFIG.backend === 'supabase';
   const SUPABASE_URL = String(CONFIG.supabase?.url || '').replace(/\/+$/, '');
   const SUPABASE_ANON_KEY = String(CONFIG.supabase?.anonKey || '');
+  const MESSAGES_SINCE = String(CONFIG.messagesSince || '').trim();
+
+  const MUSIC_KEY = 'bday-music-on';
+  const MUSIC_VOLUME = 0.24;
+  let musicWanted = true;
+  try {
+    musicWanted = localStorage.getItem(MUSIC_KEY) !== 'off';
+  } catch {
+    /* 忽略 */
+  }
 
   const DEMO_MESSAGES = [
     {
@@ -78,6 +88,9 @@
   const badgeCount = $('badgeCount');
   const wishTotal = $('wishTotal');
   const wallCount = $('wallCount');
+  const bgMusic = $('bgMusic');
+  const musicBtn = $('musicBtn');
+  const musicHint = $('musicHint');
 
   let messages = [];
   const messagesById = new Map();
@@ -93,6 +106,10 @@
   let audioCtx = null;
   let soundOn = false;
   let noiseBuffer = null;
+
+  let musicPlaying = false;
+  let musicFadeFrame = 0;
+  let musicFadeToken = 0;
 
   let fireworks = null;
 
@@ -442,6 +459,107 @@
     thump.connect(thumpGain).connect(audioCtx.destination);
     thump.start(now);
     thump.stop(now + 0.3);
+  }
+
+  function persistMusicPreference(enabled) {
+    try {
+      localStorage.setItem(MUSIC_KEY, enabled ? 'on' : 'off');
+    } catch {
+      /* 忽略 */
+    }
+  }
+
+  function setMusicUI() {
+    if (!musicBtn || !musicHint) return;
+    musicBtn.classList.toggle('is-on', musicPlaying);
+    musicBtn.setAttribute('aria-pressed', String(musicPlaying));
+    const label = musicPlaying ? '暂停背景音乐' : '播放背景音乐';
+    musicBtn.setAttribute('aria-label', label);
+    musicBtn.title = label;
+    musicHint.hidden = musicPlaying || !musicWanted;
+  }
+
+  function fadeMusic(target, duration = 700) {
+    cancelAnimationFrame(musicFadeFrame);
+    const startVolume = bgMusic.volume;
+    const started = performance.now();
+
+    const tick = (now) => {
+      const progress = Math.min(1, (now - started) / duration);
+      bgMusic.volume = clamp(startVolume + (target - startVolume) * progress, 0, 1);
+      if (progress < 1) musicFadeFrame = requestAnimationFrame(tick);
+    };
+
+    musicFadeFrame = requestAnimationFrame(tick);
+  }
+
+  async function startMusic(fromGesture = false) {
+    if (!bgMusic) return false;
+
+    musicWanted = true;
+    persistMusicPreference(true);
+    const token = ++musicFadeToken;
+
+    try {
+      bgMusic.volume = 0;
+      await bgMusic.play();
+      if (token !== musicFadeToken) return false;
+      musicPlaying = true;
+      fadeMusic(MUSIC_VOLUME, 1300);
+      setMusicUI();
+      return true;
+    } catch {
+      musicPlaying = false;
+      setMusicUI();
+      if (fromGesture) {
+        showToast('音乐没有播放成功，请再点一次音乐按钮。', 'error');
+      }
+      return false;
+    }
+  }
+
+  function stopMusic() {
+    musicWanted = false;
+    persistMusicPreference(false);
+    musicPlaying = false;
+    const token = ++musicFadeToken;
+    fadeMusic(0, 380);
+    setMusicUI();
+
+    window.setTimeout(() => {
+      if (token === musicFadeToken) bgMusic.pause();
+    }, 430);
+  }
+
+  async function toggleMusic() {
+    if (musicPlaying) {
+      stopMusic();
+      return;
+    }
+    await startMusic(true);
+    setMusicUI();
+  }
+
+  function initBackgroundMusic() {
+    if (!bgMusic) return;
+    bgMusic.volume = 0;
+    setMusicUI();
+
+    if (!musicWanted) return;
+
+    const token = ++musicFadeToken;
+    bgMusic
+      .play()
+      .then(() => {
+        if (token !== musicFadeToken) return;
+        musicPlaying = true;
+        fadeMusic(MUSIC_VOLUME, 1800);
+        setMusicUI();
+      })
+      .catch(() => {
+        musicPlaying = false;
+        setMusicUI();
+      });
   }
 
   /* -------------------------------- 烟花引擎 ------------------------------- */
@@ -1121,6 +1239,7 @@
       order: 'created_at.asc',
       limit: '500'
     });
+    if (MESSAGES_SINCE) query.set('created_at', `gt.${MESSAGES_SINCE}`);
 
     try {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/messages?${query}`, {
@@ -1332,6 +1451,19 @@
 
     wishForm.addEventListener('submit', submitWish);
 
+    if (musicBtn) musicBtn.addEventListener('click', toggleMusic);
+    if (musicHint) musicHint.addEventListener('click', () => startMusic(true));
+    if (bgMusic) {
+      bgMusic.addEventListener('play', () => {
+        musicPlaying = true;
+        setMusicUI();
+      });
+      bgMusic.addEventListener('pause', () => {
+        musicPlaying = false;
+        setMusicUI();
+      });
+    }
+
     $('writeBtn').addEventListener('click', () => {
       if (!nameInput.value.trim()) {
         nameInput.focus();
@@ -1403,6 +1535,7 @@
   }
 
   bindEvents();
+  initBackgroundMusic();
   initStars();
   initMoon();
   drawPixelTitle();
