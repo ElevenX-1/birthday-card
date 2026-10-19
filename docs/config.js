@@ -2,11 +2,13 @@
  * GitHub Pages 版本配置
  *
  * backend 固定为 supabase；anon public key 可以公开，不要使用 service_role。
+ * messagesSince 是本次生日页的展示起点：早于这个时间的旧留言不再进入页面。
  */
 window.BIRTHDAY_CONFIG = {
-  name: '蒙昊',
+  name: '谢Bro',
   subtitle: '生日快乐，愿你的每一天都像烟花一样闪闪发光',
   backend: 'supabase',
+  messagesSince: '2026-10-19T13:05:00.000Z',
   supabase: {
     url: 'https://lqvoojtrdbimkzoxnucj.supabase.co',
     anonKey:
