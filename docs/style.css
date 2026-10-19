@@ -417,6 +417,33 @@ button {
   opacity: 1;
 }
 
+.music-live {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 7px rgba(255, 209, 102, 0.9);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+#musicBtn.is-on {
+  border-color: rgba(255, 209, 102, 0.5);
+  color: var(--gold);
+}
+
+#musicBtn.is-on .music-live {
+  opacity: 1;
+  transform: scale(1);
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
 .badge {
   position: absolute;
   top: -6px;
@@ -663,6 +690,75 @@ button {
   justify-content: center;
   gap: 12px;
   margin-top: 26px;
+}
+
+.music-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: #9cafe3;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.music-hint[hidden] {
+  display: none;
+}
+
+.music-hint:hover {
+  color: #fff2c9;
+  background: rgba(255, 209, 102, 0.07);
+}
+
+.music-hint:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.music-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+}
+
+.music-bars i {
+  display: block;
+  width: 2px;
+  height: 7px;
+  background: var(--gold);
+  animation: music-bar 1.5s ease-in-out infinite;
+}
+
+.music-bars i:nth-child(2) {
+  height: 11px;
+  animation-delay: 0.24s;
+}
+
+.music-bars i:nth-child(3) {
+  height: 5px;
+  animation-delay: 0.48s;
+}
+
+@keyframes music-bar {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 .pixel-btn {
@@ -1270,6 +1366,11 @@ button {
   .hero-actions {
     gap: 9px;
     margin-top: 20px;
+  }
+
+  .music-hint {
+    margin-top: 10px;
+    font-size: 9.5px;
   }
 
   .pixel-btn {
