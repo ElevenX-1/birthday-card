@@ -32,3 +32,4 @@ create policy "messages_public_insert"
   with check (true);
 
 revoke update, delete on public.messages from anon, authenticated;
+grant select, insert on public.messages to anon, authenticated;
